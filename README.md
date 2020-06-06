@@ -89,7 +89,64 @@ rdma	4	1	1
 Yup, cgroups memory is not enabled.   
 Let's change the settings and reboot.   
 ```bash
+# doesn't work, see below
 echo "cgroup_memory=1 enable_cgroup_memory" | sudo tee -a /boot/cmdline.txt
 sudo reboot now
 ```
-Didn't have the desired effect. tsk...
+Didn't have the desired effect... seems the file is located at:
+```
+/boot/firmware/cmdline.txt
+```
+Apply again and reboot.
+
+This setting seems to have worked:
+```
+ubuntu@odin:~$ cat /boot/firmware/cmdline.txt 
+net.ifnames=0 dwc_otg.lpm_enable=0 console=serial0,115200 console=tty1 root=LABEL=writable rootfstype=ext4 elevator=deadline rootwait fixrtc cgroup_memory=1 cgroup_enable=memory
+```
+Apply the above setting to all nodes and reboot.   
+
+```
+ubuntu@odin:~$ cat /proc/cgroups 
+#subsys_name	hierarchy	num_cgroups	enabled
+cpuset	5	24	1
+cpu	7	66	1
+cpuacct	7	66	1
+blkio	4	66	1
+memory	6	77	1
+devices	9	66	1
+freezer	10	25	1
+net_cls	2	24	1
+perf_event	8	24	1
+net_prio	2	24	1
+pids	3	71	1
+rdma	11	1	1
+```
+
+We still need to run kubectl with sudo permissions, so let's add an alias and list our nodes:
+```bash
+echo "alias k='sudo k3s kubectl'" >> ~/.bash_aliases
+source ~/.bashrc
+k get nodes
+```
+
+### Add worker nodes
+Get token
+```bash
+sudo cat /var/lib/rancher/k3s/server/node-token
+```
+
+On other nodes, run:
+```bash
+curl -sfL https://get.k3s.io | K3S_URL=https://myserver:6443 K3S_TOKEN=mynodetoken sh -
+```
+
+After a few moments, the nodes join the cluster:
+```bash
+k get nodes
+NAME    STATUS   ROLES    AGE     VERSION
+freyr   Ready    <none>   2m31s   v1.18.3+k3s1
+odin    Ready    master   19m     v1.18.3+k3s1
+loki    Ready    <none>   7s      v1.18.3+k3s1
+```
+
