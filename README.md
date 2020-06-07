@@ -150,3 +150,33 @@ odin    Ready    master   19m     v1.18.3+k3s1
 loki    Ready    <none>   7s      v1.18.3+k3s1
 ```
 
+### Running apps
+We're at the exciting part! Time to run something on our cluster.   
+First of all, most docker images are built for x86_64 systems, which means they won't work on ours (just try the kubernetes hello world and you'll get an 'exec format error').   
+
+Let's find out our architecture:
+```bash
+ubuntu@odin:~$ uname -m
+armv7l
+ubuntu@odin:~$ lshw
+WARNING: you should run this program as super-user.
+odin                        
+    description: ARMv7 Processor rev 4 (v7l)
+    product: Raspberry Pi 3 Model B Plus Rev 1.3
+    serial: 000000000773773f
+    width: 32 bits
+    capabilities: smp
+```
+
+It seems we're running a 32bit ARM os.   
+
+Ok so we're installing prometheus and grafana for x86.   
+We need to manually build the project for x86, also there's problems with permissions on our cluster so just run everything as `root` for this test. We'll figure it out later.   
+
+So after running the monitoring stack, 'odin' ran out of memory. Annoying and we can't keep him up long enough to delete the resources in k3s, so let's try reinstalling the cluster (I'm getting the feeling this will happen often).   
+
+Rancher has provided us some useful scripts:
+```
+/usr/local/bin/k3s-uninstall.sh
+/usr/local/bin/k3s-agent-uninstall.sh
+```
