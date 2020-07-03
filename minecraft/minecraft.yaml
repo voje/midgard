@@ -14,5 +14,7 @@ minecraftServer:
   Difficulty: easy
   motd: "Welcome to Minecraft on Turing Pi!"
   # These settings should help the server run better on underpowered Pis.
-  maxWorldSize: 5000
-  viewDistance: 6
+  maxWorldSize: 2000
+  viewDistance: 4
+  onlineMode: false
+
